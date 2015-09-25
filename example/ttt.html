@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+  <meta charset="UTF-8">
+  <title></title>
+</head>
+<body>
+<script>
+  var p = Promise.resolve(3).then(function(value) {
+//    console.log(value);
+    throw new Error('a');
+  })
+  .then(function(e) {
+            console.log('asdasdasdasd');
+  })
+  .then(function() {
+    console.log('3333');
+  }, function() {
+    console.log('44');
+  })
+</script>
+</body>
+</html>
