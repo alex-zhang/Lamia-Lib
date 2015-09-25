@@ -18,23 +18,51 @@ package com.lamia {
 		static public const REJECTED_STATE:int = 2;
 
 		static public function resolve(value:*):Promise {
-			return new Promise(function(resolve:Function = null, reject:Function = null) {
+			return new Promise(function(resolve:Function, reject:Function) {
 				resolve(value);
 			});
 		}
 
 		static public function reject(reason:*):Promise {
-			return new Promise(function(resolve:Function = null, reject:Function = null) {
+			return new Promise(function(resolve:Function, reject:Function) {
 				reject(reason);
 			});
 		}
 
 		static public function all(iterable:*):Promise {
-			return null;
+			var len:int = iterable ? iterable.length : 0;
+			var deferred:Object = Promise.deferred();
+			var results:Array = [];
+			iterable.forEach(
+				function(p:Promise, index:int):void {
+					p.then(
+						function(value:*):void {
+							results[index] = value;
+							len--;
+							if(len === 0) {
+								deferred.resolve(results);
+							}
+						},
+						function(reson:*):void {
+							deferred.reject(reson);
+						})
+			});
+			return deferred.promise;
 		}
 
-		static public function race():Promise {
-			return null;
+		static public function delay(time:int):Promise {
+			return new Promise(function(resolve:Function) {
+				setTimeout(reject, time);
+			});
+		}
+
+		static public function deferred():Object {
+			var deferred:Object = {};
+			deferred.promise = new Promise(function(resolve:Function = null, reject:Function = null):void {
+				deferred.resolve = resolve;
+				deferred.reject = reject;
+			});
+			return deferred;
 		}
 
 		//--------------------------------------------------------------------------------------------------------------
@@ -59,18 +87,12 @@ package com.lamia {
 		}
 
 		public function then(onFulfilled:Function = null, onRejected:Function = null):Promise {
-			var deferred:Object = {
-				onFulfilled:onFulfilled,
-				onRejected:onRejected
-			};
-			var promise:Promise = new Promise(function(resolve:Function = null, reject:Function = null):void {
-				deferred.resolve = resolve;
-				deferred.reject = reject;
-			});
-			deferred.promise = promise;
+			var deferred:Object = Promise.deferred();
+			deferred.onFulfilled = onFulfilled;
+			deferred.onRejected = onRejected;
 			//In IOS void to use push.
 			mQueue[mQueue.length] = deferred;
-			return promise;
+			return deferred.promise;
 		}
 
 		//catch is key word.
@@ -93,7 +115,6 @@ package com.lamia {
 				setTimeout(function():void {
 					for(var i:int = 0, n:int = mQueue.length; i < n; i++) {
 						deferred = mQueue[i];
-
 						//here will consider the state change.
 						//---------------------------------------------------
 						// (parent-promise)[    *    ] + (current-promise)<        NaN  |     NaN    > = (current-promise)[    *    ]
@@ -132,12 +153,12 @@ package com.lamia {
 
 						if(completedData is Promise) {
 							Promise(completedData).then(
-								function(value:*):* {
+								function(value:*):void {
 									completedData = value === undefined ? mCompletedData : value;
 									completeStateFn = deferred.resolve;
 									completeStateFn(completedData);
 								},
-								function(reson:*):* {
+								function(reson:*):void {
 									completedData = reson === undefined ? mCompletedData : reson;
 									completeStateFn = deferred.reject;
 									completeStateFn(completedData);

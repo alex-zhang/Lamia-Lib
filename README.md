@@ -1,6 +1,10 @@
-Firefly-Lib
+Lamia-Lib
 ===========
 
-Firefly-Lib is an universal、 global lib.
+Lamia-Lib is Actionscript Promise/A+ 
 
-![image](https://github.com/alex-zhang/Firefly-Lib/blob/master/project_logo.jpg?raw=true) 
+https://en.wikipedia.org/wiki/Lamia
+
+![image](./project_logo.png) 
+
+
