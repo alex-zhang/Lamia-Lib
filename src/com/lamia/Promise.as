@@ -18,34 +18,32 @@ package com.lamia {
 	final public class Promise {
 		static public const VERSION:String = "0.0.1";
 
-		static public const PENDING_STATE:int = 0;
-		static public const FULLFILLED_STATE:int = 1;
-		static public const REJECTED_STATE:int = 2;
+		static private const PENDING_STATE:int = 0;
+		static private const FULLFILLED_STATE:int = 1;
+		static private const REJECTED_STATE:int = 2;
 
 		static public function resolve(value:*):Promise {
 			if(Promise.isThenable(value)) {
 				var deferred:Object = Promise.deferred();
-				value.then(
-						function(value:*):void {
-							deferred.resolve(value);
-						},
-						function(reason:*):void {
-							deferred.reject(reason);
-						}
-				)
+				//a then-able object has a then fn.
+				value.then.call(null,
+					function(value:*):void {
+						deferred.resolve(value);
+					},
+					function(reason:*):void {
+						deferred.reject(reason);
+					}
+				);
 				return deferred.promise;
 			} else {
-				return new Promise(function(resolve:Function, reject:Function):void {
+				return new Promise(function(resolve:Function):void {
 					resolve(value);
 				});
 			}
 		}
 
-		static private function isThenable(value:Boolean):Boolean {
-			if(value.hasOwnProperty('then') && value['then'] is Function) {
-				return true;
-			}
-			return false;
+		static private function isThenable(value:*):Boolean {
+			return value.hasOwnProperty('then') && value['then'] is Function;
 		}
 
 		static public function reject(reason:*):Promise {
@@ -55,6 +53,7 @@ package com.lamia {
 		}
 
 		static public function all(iterable:*):Promise {
+			//a iterable obj should has length and forEach.
 			var len:int = iterable ? iterable.length : 0;
 			var deferred:Object = Promise.deferred();
 			var results:Array = [];
@@ -73,13 +72,16 @@ package com.lamia {
 						},
 						function(reson:*):void {
 							deferred.reject(reson);
-						})
-			});
+						}
+					)
+				}
+			);
 			return deferred.promise;
 		}
 
 		//Not standard
 		static public function queue(iterable:*):Promise {
+			//a iterable obj should has length and forEach.
 			var len:int = iterable ? iterable.length : 0;
 			var deferred:Object = Promise.deferred();
 			var results:Array = [];
@@ -198,93 +200,90 @@ package com.lamia {
 			return deferred.promise;
 		}
 
+		//here will consider the state change.
+		//Normal Rule
+		//---------------------------------------------------
+		// (parent-promise)[    *    ] + (current-promise)<        NaN  |     NaN     |    NaN       > = (current-promise)[    *    ]
+
+		// (parent-promise)[fulfilled] + (current-promise)<onfulFulled* | onRejected  | onCompleted  > = (current-promise)[fulfilled]
+		// (parent-promise)[fulfilled] + (current-promise)<onfulFulled* | onRejected  |    NaN  		 > = (current-promise)[fulfilled]
+		// (parent-promise)[fulfilled] + (current-promise)<onfulFulled* |     NaN     | onCompleted  > = (current-promise)[fulfilled]
+		// (parent-promise)[fulfilled] + (current-promise)<onfulFulled* |     NaN     |    NaN       > = (current-promise)[fulfilled]
+		// (parent-promise)[fulfilled] + (current-promise)<        NaN  | onRejected  | onCompleted* > = (current-promise)[fulfilled]
+		// (parent-promise)[fulfilled] + (current-promise)<        NaN  | onRejected  |    NaN       > = (current-promise)[fulfilled]
+		// (parent-promise)[fulfilled] + (current-promise)<        NaN  |     NaN     | onCompleted* > = (current-promise)[fulfilled]
+
+		// (parent-promise)[rejected ] + (current-promise)<onfulFulled  | onRejected* | onCompleted  > = (current-promise)[fulfilled]
+		// (parent-promise)[rejected ] + (current-promise)<onfulFulled  | onRejected* |    NaN       > = (current-promise)[fulfilled]
+		// (parent-promise)[rejected ] + (current-promise)<onfulFulled  |     NaN     |    NaN       > = (current-promise)[rejected ]
+		// (parent-promise)[rejected ] + (current-promise)<onfulFulled  |     NaN     | onCompleted* > = (current-promise)[fulfilled]
+		// (parent-promise)[rejected ] + (current-promise)<        NaN  | onRejected*	| onCompleted  > = (current-promise)[fulfilled]
+		// (parent-promise)[rejected ] + (current-promise)<        NaN  | onRejected* | 	 NaN       > = (current-promise)[fulfilled]
+		// (parent-promise)[rejected ] + (current-promise)<        NaN  |     NaN     | onCompleted* > = (current-promise)[fulfilled]
+
+		//Super Rule
+		//---------------------------------------------------
+		// (parent-promise)[    *    ] + (current-promise)<              onFnExecute* throw Error     > = (current-promise)[rejected ]
+		// (parent-promise)[    *    ] + (current-promise)<              onFbExecute* return Promise  > = (current-promise)[return Promise[*]]
+		//---------------------------------------------------
 		private function completeState(state:int, data:* = undefined):void {
-			if(mCompletedState === PENDING_STATE) {
-				mCompletedState = state;
-				mCompletedData = data;
+			if(mCompletedState !== PENDING_STATE) return;
 
-				var deferred:Object;
-				//completeStateFn must not null here.
-				var completeStateFn:Function;
-				var onCompleteFn:Function;
-				var completedData:*;
+			mCompletedState = state;
+			mCompletedData = data;
 
-				//this call later is important!
-				setTimeout(function():void {
-					for(var idx:int = 0, len:int = mQueue.length; idx < len; idx++) {
-						deferred = mQueue[idx];
+			var deferred:Object;
+			//completeStateFn must not null here.
+			var completeStateFn:Function;
+			var onCompleteFn:Function;
+			var completedData:*;
 
-						//here will consider the state change.
-						//Normal Rule
-						//---------------------------------------------------
-						// (parent-promise)[    *    ] + (current-promise)<        NaN  |     NaN     |    NaN       > = (current-promise)[    *    ]
+			//this call later is important!
+			setTimeout(function():void {
+				var len:int = mQueue.length;
+				for(var idx:int = 0; idx < len; idx++) {
+					deferred = mQueue[idx];
 
-						// (parent-promise)[fulfilled] + (current-promise)<onfulFulled* | onRejected  | onCompleted  > = (current-promise)[fulfilled]
-						// (parent-promise)[fulfilled] + (current-promise)<onfulFulled* | onRejected  |    NaN  		 > = (current-promise)[fulfilled]
-						// (parent-promise)[fulfilled] + (current-promise)<onfulFulled* |     NaN     | onCompleted  > = (current-promise)[fulfilled]
-						// (parent-promise)[fulfilled] + (current-promise)<onfulFulled* |     NaN     |    NaN       > = (current-promise)[fulfilled]
-						// (parent-promise)[fulfilled] + (current-promise)<        NaN  | onRejected  | onCompleted* > = (current-promise)[fulfilled]
-						// (parent-promise)[fulfilled] + (current-promise)<        NaN  | onRejected  |    NaN       > = (current-promise)[fulfilled]
-						// (parent-promise)[fulfilled] + (current-promise)<        NaN  |     NaN     | onCompleted* > = (current-promise)[fulfilled]
-
-						// (parent-promise)[rejected ] + (current-promise)<onfulFulled  | onRejected* | onCompleted  > = (current-promise)[fulfilled]
-						// (parent-promise)[rejected ] + (current-promise)<onfulFulled  | onRejected* |    NaN       > = (current-promise)[fulfilled]
-						// (parent-promise)[rejected ] + (current-promise)<onfulFulled  |     NaN     |    NaN       > = (current-promise)[rejected ]
-						// (parent-promise)[rejected ] + (current-promise)<onfulFulled  |     NaN     | onCompleted* > = (current-promise)[fulfilled]
-						// (parent-promise)[rejected ] + (current-promise)<        NaN  | onRejected*	| onCompleted  > = (current-promise)[fulfilled]
-						// (parent-promise)[rejected ] + (current-promise)<        NaN  | onRejected* | 	 NaN       > = (current-promise)[fulfilled]
-						// (parent-promise)[rejected ] + (current-promise)<        NaN  |     NaN     | onCompleted* > = (current-promise)[fulfilled]
-
-						//Super Rule
-						//---------------------------------------------------
-						// (parent-promise)[    *    ] + (current-promise)<              onFnExecute* throw Error     > = (current-promise)[rejected ]
-						// (parent-promise)[    *    ] + (current-promise)<              onFbExecute* return Promise  > = (current-promise)[return Promise[*]]
-						//---------------------------------------------------
-
-						if(mCompletedState === FULLFILLED_STATE) {
-							completeStateFn = deferred.resolve;
-							onCompleteFn = deferred.onFulfilled || deferred.onCompleted;
-						} else {//rejected state
-							onCompleteFn = deferred.onRejected || deferred.onCompleted;
-							if(onCompleteFn != null) {
-								completeStateFn = deferred.reject;
-							} else {
-								completeStateFn = deferred.resolve;
-							}
-						}
-
-						//here to execute the then callback.
-						try {
-							if(onCompleteFn != null) {
-								completedData = onCompleteFn.call(null, mCompletedData);
-							}
-						} catch(error:Error) {
-							completeStateFn = deferred.reject;
-							completedData = error;
-						}
-
-						if(completedData is Promise) {
-							Promise(completedData).then(
-								function(value:*):void {
-									completedData = value === undefined ? mCompletedData : value;
-									completeStateFn = deferred.resolve;
-									completeStateFn(completedData);
-								},
-								function(reson:*):void {
-									completedData = reson === undefined ? mCompletedData : reson;
-									completeStateFn = deferred.reject;
-									completeStateFn(completedData);
-								}
-							);
-						} else {
-							completedData = completedData === undefined ? mCompletedData : completedData;
-							completeStateFn(completedData);
-						}
+					if(mCompletedState === FULLFILLED_STATE) {
+						completeStateFn = deferred.resolve;
+						onCompleteFn = deferred.onFulfilled || deferred.onCompleted;
+					} else {//rejected state
+						onCompleteFn = deferred.onRejected || deferred.onCompleted;
+						completeStateFn = onCompleteFn != null ? deferred.reject : deferred.resolve;
 					}
-					//clear the queue.
-					mQueue.length = 0;
-				}, 0)
-			}
+
+					//here to execute the then callback.
+					try {
+						if(onCompleteFn != null) {
+							completedData = onCompleteFn.call(null, mCompletedData);
+						}
+					} catch(error:Error) {
+						completeStateFn = deferred.reject;
+						completedData = error;
+					}
+
+					if(completedData is Promise) {
+						Promise(completedData).then(
+							function(value:*):void {
+								completedData = value === undefined ? mCompletedData : value;
+								completeStateFn = deferred.resolve;
+								completeStateFn(completedData);
+							},
+							function(reson:*):void {
+								completedData = reson === undefined ? mCompletedData : reson;
+								completeStateFn = deferred.reject;
+								completeStateFn(completedData);
+							}
+						);
+					} else {
+						completedData = completedData === undefined ? mCompletedData : completedData;
+						completeStateFn(completedData);
+					}
+				}
+				//clear the queue.
+				mQueue.length = 0;
+			}, 0)
 		}
+		//--
 	}
 }
