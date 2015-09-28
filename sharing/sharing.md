@@ -103,11 +103,24 @@ Promise 本质的关键特征
   <div style="height:60px;" ></div>
 ```
 
-一个 Promise 任何时候处于以下四种状态之一:
-+ pending: 初始状态, 非 fulfilled 或 rejected.
-+ fulfilled: 成功的操作.
-+ rejected: 失败的操作.
-+ settled: Promise已被fulfilled或rejected，且不是pending
+```javascript
+step1(function (value1) {
+    step2(value1, function(value2) {
+        step3(value2, function(value3) {
+            step4(value3, function(value4) {
+                // Do something with value4
+            });
+        });
+    });
+});
+```
+
+```javascript
+excute(step1)
+  .then(step2)
+  .then(step3)
+  .then(step4) 
+```
 
 
 ```meta
@@ -141,11 +154,14 @@ Promise 本质的关键特征
 ```
 
 ```embed-html
+<span style="padding-left:100px"></span>
 <img height="380" src="https://github.com/alex-zhang/hecate/raw/master/hecate.png"/>
 <img height="380" src="https://github.com/alex-zhang/Lamia-Lib/raw/master/project_logo.png"/>
-```
 
-Fork Me
+<a href="https://github.com/alex-zhang/Lamia-Lib](https://github.com/alex-zhang/Lamia-Lib"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://camo.githubusercontent.com/a6677b08c955af8400f44c6298f40e7d19cc5b2d/68747470733a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f72696768745f677261795f3664366436642e706e67" alt="Fork me on GitHub" data-canonical-src="https://s3.amazonaws.com/github/ribbons/forkme_right_gray_6d6d6d.png"></a>
+
+<div style="height:60px;"></div>
+```
 
 [Lamia-Lib    https://github.com/alex-zhang/Lamia-Lib](https://github.com/alex-zhang/Lamia-Lib)
 
