@@ -55,8 +55,12 @@ package com.lamia {
 		static public function all(iterable:*):Promise {
 			//a iterable obj should has length and forEach.
 			var len:int = iterable ? iterable.length : 0;
-			var deferred:Object = Promise.deferred();
 			var results:Array = [];
+			if(len === 0) {
+				return Promise.resolve(results);
+			}
+
+			var deferred:Object = Promise.deferred();
 			iterable.forEach(
 				function(p:*, idx:int):void {
 					if(!(p is Promise)) {
@@ -88,7 +92,6 @@ package com.lamia {
 			var idx:int = -1;
 
 			next();
-
 			function next():void {
 				idx++;
 				if(idx < len) {
