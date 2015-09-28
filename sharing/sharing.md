@@ -51,6 +51,7 @@ My Understanding
 {
   "data-x":2000,
   "data-y":1000,
+  "data-z":3000,
   "data-scale":2,
   "data-rotate": 45,
   "class":"slide-card"
@@ -78,6 +79,7 @@ My Understanding
 {
   "data-x":2000,
   "data-y":1000,
+  "data-z":3001,
   "data-scale":1.8,
   "data-rotate": 45
 }
@@ -97,7 +99,6 @@ My Understanding
   "class": "slide-card"
 }
 ```
-Promise 本质的关键特征
 
 ```embed-html
   <div style="height:60px;" ></div>
@@ -126,7 +127,8 @@ excute(step1)
 ```meta
 {
   "data-x":1400,
-  "data-y":3000,
+  "data-y":6000,
+  "data-z":1000,
   "style": "height:500px;background-color:#373B3C;color:#fff;",
   "class": "slide-card"
 }
@@ -146,9 +148,10 @@ Promise 本质的关键特征
 
 ```meta
 {
-  "data-x":2000,
-  "data-y":2000,
-  "data-scale":8,
+  "data-x":1000,
+  "data-y":1000,
+  "data-z":-1000,
+  "data-scale":1,
   "class": "slide-card"
 }
 ```
@@ -194,7 +197,7 @@ Promise 本质的关键特征
 
 ```meta
 {
-  "data-y":-3000
+  "data-x":-4000
 }
 ```
 
