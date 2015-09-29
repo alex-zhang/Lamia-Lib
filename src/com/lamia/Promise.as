@@ -161,13 +161,16 @@ package com.lamia {
 		//----------------------------------------------------------------------
 
 		private var mQueue:Array = [];
+		private var mProcessQueueTimeHandle:int;
 		//default pendding.
 		private var mCompletedState:int = PENDING_STATE;
 		//when fulfilled state it's `eventual value` when rejected state it's `reason`
 		private var mCompletedData:*;
 
+
 		public function Promise(resolver:Function) {
 			super();
+			mProcessQueueTimeHandle = -1;
 			//resolver has no context of this.
 			resolver.call(null,
 				function():void {
@@ -200,7 +203,18 @@ package com.lamia {
 			deferred.onCompleted = onCompleted;
 			//In IOS void to use push.
 			mQueue[mQueue.length] = deferred;
+
+			if(mCompletedState !== PENDING_STATE) {
+				processQueuedPromises();
+			}
 			return deferred.promise;
+		}
+
+		private function completeState(state:int, data:* = undefined):void {
+			if(mCompletedState !== PENDING_STATE) return;
+			mCompletedState = state;
+			mCompletedData = data;
+			processQueuedPromises();
 		}
 
 		//here will consider the state change.
@@ -229,11 +243,9 @@ package com.lamia {
 		// (parent-promise)[    *    ] + (current-promise)<              onFnExecute* throw Error     > = (current-promise)[rejected ]
 		// (parent-promise)[    *    ] + (current-promise)<              onFbExecute* return Promise  > = (current-promise)[return Promise[*]]
 		//---------------------------------------------------
-		private function completeState(state:int, data:* = undefined):void {
-			if(mCompletedState !== PENDING_STATE) return;
-
-			mCompletedState = state;
-			mCompletedData = data;
+		private function processQueuedPromises():void {
+			if(mProcessQueueTimeHandle > 0) return;
+			if(mQueue.length === 0) return;
 
 			var deferred:Object;
 			//completeStateFn must not null here.
@@ -242,17 +254,18 @@ package com.lamia {
 			var completedData:*;
 
 			//this call later is important!
-			setTimeout(function():void {
+			mProcessQueueTimeHandle = setTimeout(function():void {
+				mProcessQueueTimeHandle = -1;
 				var len:int = mQueue.length;
 				for(var idx:int = 0; idx < len; idx++) {
 					deferred = mQueue[idx];
 
 					if(mCompletedState === FULLFILLED_STATE) {
-						completeStateFn = deferred.resolve;
 						onCompleteFn = deferred.onFulfilled || deferred.onCompleted;
+						completeStateFn = deferred.resolve;
 					} else {//rejected state
 						onCompleteFn = deferred.onRejected || deferred.onCompleted;
-						completeStateFn = onCompleteFn != null ? deferred.reject : deferred.resolve;
+						completeStateFn = onCompleteFn == null ? deferred.reject : deferred.resolve;
 					}
 
 					//here to execute the then callback.
@@ -267,16 +280,16 @@ package com.lamia {
 
 					if(completedData is Promise) {
 						Promise(completedData).then(
-							function(value:*):void {
-								completedData = value === undefined ? mCompletedData : value;
-								completeStateFn = deferred.resolve;
-								completeStateFn(completedData);
-							},
-							function(reson:*):void {
-								completedData = reson === undefined ? mCompletedData : reson;
-								completeStateFn = deferred.reject;
-								completeStateFn(completedData);
-							}
+								function(value:*):void {
+									completedData = value === undefined ? mCompletedData : value;
+									completeStateFn = deferred.resolve;
+									completeStateFn(completedData);
+								},
+								function(reson:*):void {
+									completedData = reson === undefined ? mCompletedData : reson;
+									completeStateFn = deferred.reject;
+									completeStateFn(completedData);
+								}
 						);
 					} else {
 						completedData = completedData === undefined ? mCompletedData : completedData;

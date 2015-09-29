@@ -37,30 +37,26 @@
 <!-- ============= -->
 <div data-x="1000" class="step slide-card" style="height:450px;" id="impress_card_2">
 <h1 id="my-understanding">My Understanding</h1>
-  <div style="height:60px;" ></div><p><code>Promise 模式</code> : 是对 [异步] [计算] [过程] 的[抽象] 的设计模式</p>
+  <div style="height:60px;" ></div><p><code>Promise 模式</code> : 是对 [异步] [计算过程] 的[抽象] 的设计模式</p>
   <div style="height:40px;" ></div>
   <span style="height:60px;color:blue">程序 = 数据 + 算法</span>
 </div>
 <!-- ============= -->
-<div data-x="2000" data-y="1000" data-z="3000" data-scale="2" data-rotate="45" class="step slide-card" id="impress_card_3">
+<div data-x="2000" data-y="1000" data-scale="2" data-rotate="45" class="step slide-card" id="impress_card_3">
 <h1 id="-">抽象</h1>
   <div style="height:30px;" ></div><p>是从众多的事物中抽取出共同的、本质性的特征，而舍弃其非本质的特征。<a href="http://baike.baidu.com/subview/5293/11100825.htm">link</a></p>
   <div style="height:120px;" ></div><p><code>众多的事物</code> <code>抽取</code> <code>共同的</code> <code>本质性的</code> <code>特征</code> <code>舍弃</code> <code>其非本质</code></p>
   <div style="height:20px;" ></div>
 </div>
 <!-- ============= -->
-<div data-x="2000" data-y="1000" data-z="3001" data-scale="1.8" data-rotate="45" class="step " id="impress_card_4">
+<div data-x="2000" data-y="1000" data-scale="1.8" data-rotate="45" class="step " id="impress_card_4">
 <p>从某个业务逻辑角度，对一类事物进行简化、归纳其必要特征的行为</p>
 
 </div>
 <!-- ============= -->
-<<<<<<< HEAD
-<div data-x="2400" data-y="800" data-scale="3.4" data-rotate-x="127" data-rotate-y="45" data-transition-duration="5000" style="font-size:80%" class="step " id="impress_card_5">
+<div data-x="2400" data-y="4800" data-z="-4800" data-scale="3.4" data-rotate-x="127" data-rotate-y="45" data-transition-duration="5000" style="font-size:80%" class="step " id="impress_card_5">
+<h1 id="-">如果说到基于的异步处理，大多数人都会想到利用回调函数。</h1>
 <pre><code class="lang-javascript">step1(function (value1) {
-=======
-<div data-x="2400" data-y="800" data-scale="3.4" data-rotate-x="127" data-rotate-y="45" data-transition-duration="5000" style="height:500px;background-color:cadetblue;color:#fff;" class="step slide-card" id="impress_card_5">
-  <div style="height:60px;" ></div><pre><code class="lang-javascript">step1(function (value1) {
->>>>>>> 3b8eb2894cc75f6f9c63c387cdbb91ba2eab32d2
     step2(value1, function(value2) {
         step3(value2, function(value3) {
             step4(value3, function(value4) {
@@ -70,32 +66,68 @@
     });
 });
 </code></pre>
+
+</div>
+<!-- ============= -->
+<div data-x="2400" data-y="800" data-z="2000" data-scale="3.4" data-rotate-x="127" data-rotate-y="45" style="font-size:80%" class="step " id="impress_card_6">
 <pre><code class="lang-javascript">excute(step1)
   .then(step2)
   .then(step3)
-<<<<<<< HEAD
   .then(step4) 
   .catch(step5)
-=======
-  .then(step4)
->>>>>>> 3b8eb2894cc75f6f9c63c387cdbb91ba2eab32d2
 </code></pre>
 
 </div>
 <!-- ============= -->
-<div data-x="1400" data-y="6000" data-z="1000" style="height:500px;background-color:#373B3C;color:#fff;" class="step slide-card" id="impress_card_6">
-<p>Promise 本质的关键特征</p>
-  <div style="height:60px;" ></div><p>一个 Promise 任何时候处于以下四种状态之一:</p>
+<div data-x="1400" data-y="3000" class="step " id="impress_card_7">
+  <div style="height:60px;" ></div><h1 id="promise-">Promise 模式是怎么抽象这样一个异步计算过程的。</h1>
+
+</div>
+<!-- ============= -->
+<div data-x="1400" data-y="4000" class="step " id="impress_card_8">
+<p>一个 Promise 任何时候处于以下四种状态之一:</p>
 <ul>
 <li>pending: 初始状态, 非 fulfilled 或 rejected.</li>
 <li>fulfilled: 成功的操作.</li>
 <li>rejected: 失败的操作.</li>
 <li>settled: Promise已被fulfilled或rejected，且不是pending</li>
 </ul>
+<p style="text-align:center"><img style="margin-right:80px;" src="./promise-states.png"></img></p>
+</div>
+<!-- ============= -->
+<div data-x="1400" data-y="5000" class="step " id="impress_card_9">
+<p>Promise 构造函数里面接受一个 Fn 参数， 这个Fn 有两个回调函数参数 (resolve, reject)</p>
+<div style="font-size:80%"><pre><code class="lang-javascript">var promise = new Promise(function(resolve, reject) {
+    // 异步处理
+    // 处理结束后、调用resolve 或 reject
+});
+</code></pre>
+</div>
+</div>
+<!-- ============= -->
+<div data-x="1400" data-y="6000" class="step " id="impress_card_10">
+<p><code>Promise</code> 的then()方法返回一个新的Promise。它有两个 Fn 参数，分别为Promise在 success 和 failure 情况下的回调函数。</p>
+<pre><code class="lang-javascript">p.then(onFulfilled, onRejected);
+
+p.then(function(value) {
+   // 满足
+  }, function(reason) {
+  // 拒绝
+});
+</code></pre>
 
 </div>
 <!-- ============= -->
-<div data-x="1000" data-y="1000" data-z="-1000" data-scale="1" class="step slide-card" id="impress_card_7">
+<div data-x="1400" data-y="7000" class="step slide-card" style="text-align:center" id="impress_card_11">
+<p><img src="./promise-then-catch-flow.png" alt=""></p>
+
+</div>
+<!-- ============= -->
+<div data-x="2400" data-y="7000" style="text-align:center" class="step " id="impress_card_12">
+<p style="font-size:200%;color:#fff;text-align:center;">Promise Code Review</p>
+</div>
+<!-- ============= -->
+<div data-x="4000" data-y="4000" data-z="4000" data-scale="4" class="step slide-card" id="impress_card_13">
 <span style="padding-left:100px"></span>
 <img height="380" src="https://github.com/alex-zhang/hecate/raw/master/hecate.png"/>
 <img height="380" src="https://github.com/alex-zhang/Lamia-Lib/raw/master/project_logo.png"/>
@@ -107,11 +139,7 @@
 
 </div>
 <!-- ============= -->
-<<<<<<< HEAD
-<div data-y="-3000" class="step " id="impress_card_8">
-=======
-<div data-x="-4000" class="step " id="impress_card_8">
->>>>>>> 3b8eb2894cc75f6f9c63c387cdbb91ba2eab32d2
+<div data-y="-3000" class="step " id="impress_card_14">
 <p style="font-size:120px;color:#fff;text-align:center;">Thanks</p>
 </div>
 
@@ -676,10 +704,7 @@ code {
   border-radius: 10px;
   padding: 5px;
   background-color: #fff;
-<<<<<<< HEAD
   color: #000;
-=======
->>>>>>> 3b8eb2894cc75f6f9c63c387cdbb91ba2eab32d2
 }
 
 /*pre code {

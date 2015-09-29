@@ -40,7 +40,7 @@ My Understanding
 ```embed-html
   <div style="height:60px;" ></div>
 ```
-`Promise 模式` : 是对 [异步] [计算] [过程] 的[抽象] 的设计模式
+`Promise 模式` : 是对 [异步] [计算过程] 的[抽象] 的设计模式
 
 ```embed-html
   <div style="height:40px;" ></div>
@@ -88,15 +88,18 @@ My Understanding
 ```meta
 {
   "data-x":2400,
-  "data-y":800,
+  "data-y":4800,
+  "data-z":-4800,
   "data-scale":3.4,
   "data-rotate-x": 127,
   "data-rotate-y": 45,
   "data-transition-duration": 5000,
   "style": "font-size:80%"
-  
 }
 ```
+
+如果说到基于的异步处理，大多数人都会想到利用回调函数。
+==================
 
 ```javascript
 step1(function (value1) {
@@ -108,6 +111,18 @@ step1(function (value1) {
         });
     });
 });
+```
+
+```meta
+{
+  "data-x":2400,
+  "data-y":800,
+  "data-z":2000,
+  "data-scale":3.4,
+  "data-rotate-x": 127,
+  "data-rotate-y": 45,
+  "style": "font-size:80%"
+}
 ```
 
 ```javascript
@@ -122,15 +137,22 @@ excute(step1)
 ```meta
 {
   "data-x":1400,
-  "data-y":3000,
-  "style": "height:500px;background-color:#373B3C;color:#fff;",
-  "class": "slide-card"
+  "data-y":3000
 }
 ```
-Promise 本质的关键特征
 
 ```embed-html
   <div style="height:60px;" ></div>
+```
+
+Promise 模式是怎么抽象这样一个异步计算过程的。
+==================
+
+```meta
+{
+  "data-x":1400,
+  "data-y":4000
+}
 ```
 
 一个 Promise 任何时候处于以下四种状态之一:
@@ -139,12 +161,83 @@ Promise 本质的关键特征
 + rejected: 失败的操作.
 + settled: Promise已被fulfilled或rejected，且不是pending
 
+```embed-html
+<p style="text-align:center"><img style="margin-right:80px;" src="./promise-states.png"></img></p>
+```
 
 ```meta
 {
-  "data-x":2000,
-  "data-y":2000,
-  "data-scale":8,
+  "data-x":1400,
+  "data-y":5000
+}
+```
+
+Promise 构造函数里面接受一个 Fn 参数， 这个Fn 有两个回调函数参数 (resolve, reject)
+
+```embed-html
+<div style="font-size:80%">
+```
+
+```javascript
+var promise = new Promise(function(resolve, reject) {
+    // 异步处理
+    // 处理结束后、调用resolve 或 reject
+});
+```
+```embed-html
+</div>
+```
+
+```meta
+{
+  "data-x":1400,
+  "data-y":6000
+}
+```
+
+`Promise` 的then()方法返回一个新的Promise。它有两个 Fn 参数，分别为Promise在 success 和 failure 情况下的回调函数。
+
+```javascript
+p.then(onFulfilled, onRejected);
+
+p.then(function(value) {
+   // 满足
+  }, function(reason) {
+  // 拒绝
+});
+```
+
+```meta
+{
+  "data-x":1400,
+  "data-y":7000,
+  "class":"slide-card",
+  "style": "text-align:center"
+}
+```
+
+![](./promise-then-catch-flow.png)
+
+
+```meta
+{
+  "data-x":2400,
+  "data-y":7000,
+  "style": "text-align:center"
+}
+```
+
+```embed-html
+<p style="font-size:200%;color:#fff;text-align:center;">Promise Code Review</p>
+```
+
+
+```meta
+{
+  "data-x":4000,
+  "data-y":4000,
+  "data-z":4000,
+  "data-scale":4,
   "class": "slide-card"
 }
 ```
