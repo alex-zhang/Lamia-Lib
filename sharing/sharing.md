@@ -93,14 +93,9 @@ My Understanding
   "data-rotate-x": 127,
   "data-rotate-y": 45,
   "data-transition-duration": 5000,
-  "style": "height:500px;background-color:cadetblue;color:#fff;",
-  "class": "slide-card"
+  "style": "font-size:80%"
+  
 }
-```
-Promise 本质的关键特征
-
-```embed-html
-  <div style="height:60px;" ></div>
 ```
 
 ```javascript
@@ -120,6 +115,7 @@ excute(step1)
   .then(step2)
   .then(step3)
   .then(step4) 
+  .catch(step5)
 ```
 
 
