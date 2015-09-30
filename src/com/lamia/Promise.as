@@ -23,23 +23,15 @@ package com.lamia {
 		static private const REJECTED_STATE:int = 2;
 
 		static public function resolve(value:*):Promise {
-			if(Promise.isThenable(value)) {
-				var deferred:Object = Promise.deferred();
-				//a then-able object has a then fn.
-				value.then.call(null,
-					function(value:*):void {
-						deferred.resolve(value);
-					},
-					function(reason:*):void {
-						deferred.reject(reason);
-					}
-				);
-				return deferred.promise;
-			} else {
-				return new Promise(function(resolve:Function):void {
-					resolve(value);
-				});
+			//resolve promise just return the promise.
+			if(value is Promise) {
+				return value;
+			} else if(Promise.isThenable(value)) {
+				return new Promise(value.then);
 			}
+			return new Promise(function(resolve:Function, reject:Function = null):void {
+				resolve(value);
+			});
 		}
 
 		static private function isThenable(value:*):Boolean {
@@ -47,7 +39,7 @@ package com.lamia {
 		}
 
 		static public function reject(reason:*):Promise {
-			return new Promise(function(resolve:Function, reject:Function):void {
+			return new Promise(function(resolve:Function, reject:Function = null):void {
 				reject(reason);
 			});
 		}
@@ -62,7 +54,7 @@ package com.lamia {
 
 			var deferred:Object = Promise.deferred();
 			iterable.forEach(
-				function(p:*, idx:int):void {
+				function(p:*, idx:int, arr:Array):void {
 					if(!(p is Promise)) {
 						p = Promise.resolve(p);
 					}
@@ -127,7 +119,7 @@ package com.lamia {
 			var deferred:Object = Promise.deferred();
 			var firstP:Promise;
 			iterable.forEach(
-				function(p:*, idx:int):void {
+				function(p:*, idx:int, arr:Array):void {
 					if(!(p is Promise)) {
 						p = Promise.resolve(p);
 					}
@@ -151,7 +143,7 @@ package com.lamia {
 
 		static public function deferred():Object {
 			var deferred:Object = {};
-			deferred.promise = new Promise(function(resolve:Function = null, reject:Function = null):void {
+			deferred.promise = new Promise(function(resolve:Function, reject:Function = null):void {
 				deferred.resolve = resolve;
 				deferred.reject = reject;
 			});
@@ -160,26 +152,34 @@ package com.lamia {
 
 		//----------------------------------------------------------------------
 
-		private var mQueue:Array = [];
+		private var mQueue:Array;
 		private var mProcessQueueTimeHandle:int;
 		//default pendding.
-		private var mCompletedState:int = PENDING_STATE;
+		private var mCompletedState:int;
 		//when fulfilled state it's `eventual value` when rejected state it's `reason`
 		private var mCompletedData:*;
 
 
 		public function Promise(resolver:Function) {
 			super();
+
+			mQueue = [];
 			mProcessQueueTimeHandle = -1;
+			mCompletedState = PENDING_STATE;
+
 			//resolver has no context of this.
-			resolver.call(null,
-				function():void {
-					completeState(FULLFILLED_STATE, arguments[0]);
-				},
-				function():void {
-					completeState(REJECTED_STATE, arguments[0]);
-				}
-			);
+			try {
+				resolver.call(null,
+					function():void {
+						completeState(FULLFILLED_STATE, arguments[0]);
+					},
+					function():void {
+						completeState(REJECTED_STATE, arguments[0]);
+					}
+				);
+			} catch(err:Error) {
+				completeState(REJECTED_STATE, err);
+			}
 		}
 
 		public function then(onFulfilled:Function = null, onRejected:Function = null):Promise {
