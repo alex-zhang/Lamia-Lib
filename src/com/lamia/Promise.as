@@ -16,7 +16,7 @@ package com.lamia {
 	 *
 	 */
 	final public class Promise {
-		static public const VERSION:String = "0.0.2";
+		static public const VERSION:String = "0.1.0";
 
 		static private const PENDING_STATE:int = 0;
 		static private const FULFILLED_STATE:int = 1;
