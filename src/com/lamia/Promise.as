@@ -16,10 +16,10 @@ package com.lamia {
 	 *
 	 */
 	final public class Promise {
-		static public const VERSION:String = "0.0.1";
+		static public const VERSION:String = "0.0.2";
 
 		static private const PENDING_STATE:int = 0;
-		static private const FULLFILLED_STATE:int = 1;
+		static private const FULFILLED_STATE:int = 1;
 		static private const REJECTED_STATE:int = 2;
 
 		static public function resolve(value:*):Promise {
@@ -171,7 +171,7 @@ package com.lamia {
 			try {
 				resolver.call(null,
 					function():void {
-						completeState(FULLFILLED_STATE, arguments[0]);
+						completeState(FULFILLED_STATE, arguments[0]);
 					},
 					function():void {
 						completeState(REJECTED_STATE, arguments[0]);
@@ -260,7 +260,7 @@ package com.lamia {
 				for(var idx:int = 0; idx < len; idx++) {
 					deferred = mQueue[idx];
 
-					if(mCompletedState === FULLFILLED_STATE) {
+					if(mCompletedState === FULFILLED_STATE) {
 						onCompleteFn = deferred.onFulfilled || deferred.onCompleted;
 						completeStateFn = deferred.resolve;
 					} else {//rejected state
