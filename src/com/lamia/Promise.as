@@ -35,7 +35,7 @@ package com.lamia {
 		}
 
 		static private function isThenable(value:*):Boolean {
-			return value.hasOwnProperty('then') && value['then'] is Function;
+			return value && value.hasOwnProperty('then') && value['then'] is Function;
 		}
 
 		static public function reject(reason:*):Promise {
